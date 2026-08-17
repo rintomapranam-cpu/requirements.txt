@@ -118,5 +118,5 @@ def webhook():
         print("Error processing webhook:", str(e))
         return jsonify({"status": "error", "message": str(e)}), 500
 
-if name == 'main':
+if__name__ == 'main':
     app.run(host='0.0.0.0', port=5000)
