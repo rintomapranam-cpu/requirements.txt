@@ -6,7 +6,7 @@ import requests
 import json
 from flask import Flask, request, jsonify
 
-app = Flask(__name__)
+app = Flask(name)
 
 DELTA_API_KEY = os.environ.get("DELTA_API_KEY")
 DELTA_API_SECRET = os.environ.get("DELTA_API_SECRET")
@@ -20,9 +20,22 @@ def generate_signature(method, endpoint, payload_str, timestamp):
         hashlib.sha256
     ).hexdigest()
 
+def get_ticker_price(product_symbol):
+    try:
+        url = f"{BASE_URL}/v2/tickers/{product_symbol}"
+        response = requests.get(url)
+        data = response.json()
+        if data.get("success"):
+            return float(data["result"]["close"])
+    except Exception as e:
+        print("Error fetching ticker price:", str(e))
+    return None
+
 def send_delta_order(product_symbol, side, size):
     endpoint = "/v2/orders"
     timestamp = str(int(time.time()))
+    
+    current_price = get_ticker_price(product_symbol)
     
     payload = {
         "product_symbol": product_symbol,
@@ -30,7 +43,18 @@ def send_delta_order(product_symbol, side, size):
         "side": side,
         "order_type": "market_order"
     }
-    
+
+    if current_price:
+        if side == "buy":
+            stop_loss_price = round(current_price * 0.99, 1)
+            take_profit_price = round(current_price * 1.02, 1)
+        else:
+            stop_loss_price = round(current_price * 1.01, 1)
+            take_profit_price = round(current_price * 0.98, 1)
+
+        payload["bracket_stop_loss_price"] = str(stop_loss_price)
+        payload["bracket_take_profit_price"] = str(take_profit_price)
+
     payload_str = json.dumps(payload)
     signature = generate_signature("POST", endpoint, payload_str, timestamp)
     
@@ -70,5 +94,5 @@ def webhook():
         print("Error processing webhook:", str(e))
         return jsonify({"status": "error", "message": str(e)}), 500
 
-if __name__ == 'main':
+if name == 'main':
     app.run(host='0.0.0.0', port=5000)
