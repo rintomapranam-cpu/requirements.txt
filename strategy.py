@@ -10,7 +10,7 @@ app = Flask(name)
 
 DELTA_API_KEY = os.environ.get("DELTA_API_KEY")
 DELTA_API_SECRET = os.environ.get("DELTA_API_SECRET")
-BASE_URL = "https://api.delta.exchange"
+BASE_URL = os.environ.get("DELTA_BASE_URL", "https://api.india.delta.exchange")
 
 def generate_signature(method, endpoint, payload_str, timestamp):
     signature_data = method + timestamp + endpoint + payload_str
@@ -62,7 +62,7 @@ def send_delta_order(product_symbol, side, size):
     
     payload = {
         "product_symbol": product_symbol,
-        "size": size,
+        "size": int(size),
         "side": side,
         "order_type": "market_order"
     }
@@ -75,6 +75,7 @@ def send_delta_order(product_symbol, side, size):
             stop_loss_price = round(current_price * 1.01, 1)
             take_profit_price = round(current_price * 0.98, 1)
 
+        payload["stop_trigger_method"] = "last_traded_price"
         payload["bracket_stop_loss_price"] = str(stop_loss_price)
         payload["bracket_take_profit_price"] = str(take_profit_price)
 
