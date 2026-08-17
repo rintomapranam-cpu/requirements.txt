@@ -6,7 +6,7 @@ import requests
 import json
 from flask import Flask, request, jsonify
 
-app = Flask(name)
+app = Flask(__name__)
 
 DELTA_API_KEY = os.environ.get("DELTA_API_KEY")
 DELTA_API_SECRET = os.environ.get("DELTA_API_SECRET")
