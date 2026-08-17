@@ -31,7 +31,30 @@ def get_ticker_price(product_symbol):
         print("Error fetching ticker price:", str(e))
     return None
 
+def close_existing_positions(product_symbol):
+    try:
+        endpoint = "/v2/orders/close_all"
+        timestamp = str(int(time.time()))
+        payload = {"product_symbol": product_symbol}
+        payload_str = json.dumps(payload)
+        
+        signature = generate_signature("POST", endpoint, payload_str, timestamp)
+        headers = {
+            "api-key": DELTA_API_KEY,
+            "signature": signature,
+            "timestamp": timestamp,
+            "Content-Type": "application/json"
+        }
+        
+        res = requests.post(BASE_URL + endpoint, data=payload_str, headers=headers)
+        print("Closed previous positions:", res.json())
+        time.sleep(1)
+    except Exception as e:
+        print("Error closing existing positions:", str(e))
+
 def send_delta_order(product_symbol, side, size):
+    close_existing_positions(product_symbol)
+
     endpoint = "/v2/orders"
     timestamp = str(int(time.time()))
     
