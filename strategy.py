@@ -10,7 +10,7 @@ app = Flask(__name__)
 
 DELTA_API_KEY = os.environ.get("DELTA_API_KEY")
 DELTA_API_SECRET = os.environ.get("DELTA_API_SECRET")
-BASE_URL = os.environ.get("DELTA_BASE_URL", "https://testnet-api.delta.exchange")
+BASE_URL = os.environ.get("DELTA_BASE_URL", "https://api.testnet.delta.exchange")
 
 def generate_signature(method, endpoint, payload_str, timestamp):
     signature_data = method + timestamp + endpoint + payload_str
